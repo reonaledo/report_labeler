@@ -1,6 +1,3 @@
-# report_labeler
-
-
 # A Framework for Training LLMs as High-Performance, Specialized Radiology Report Labelers
 
 Abstract
