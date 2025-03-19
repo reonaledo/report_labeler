@@ -1,13 +1,10 @@
-# A Framework for Training LLMs as High-Performance, Specialized Radiology Report Labelers
+# Privacy-Preserving Information Extraction Framework for Diverse Imaging Reports using Large Language Models
 
 ## Abstract
-### Background: 
-Although Large Language Models (LLMs) like ChatGPT and LLaMA show promise in the medical domain, their application for radiology report labeling remains largely unexplored.
-### Purpose: 
-To develop and validate a general framework for a high-performance specialized report labeler.
-### Materials and Methods: 
-This retrospective study utilized datasets from MIMIC-CXR and Open-i for chest X-ray (CXR) reports, along with a private dataset and CDD-CESM for mammography reports. To prepare the training sets, 1,000 CXR and 500 mammography reports were annotated. The publicly accessible LLM, LLaMA, was trained for labeling across each modality, incorporating both instruction tuning and parameter-efficient fine-tuning. To investigate the impact of LLM size on the labeling performance, experiments spanned LLaMA with parameter counts ranging from 7B to 65B. Labeling performance was assessed using the Macro F1 score on both internal and external test sets (n=500/500 for CXR, n=549/326 for mammography). A comparative analysis was conducted against CheXpert, CheXbert, and zero/few-shot settings of LLaMA-65B.
-### Results: 
-A total of 2,000 MIMIC-CXR and Open-i reports from 1,438 patients (median age, 63 [IQR, 50-74]; 52% female) and 1,375 reports from 1,360 patients of the private datasets and CDD-CESM (median age, 51 [IQR, 46-58]; all female) were included. The proposed method achieved higher mean F1 scores than existing methods, recording 0.80 (95% CI: 0.80, 0.81) and 0.77 (95% CI: 0.76, 0.78) for CXR internal and external tests, notably outperforming CheXbert's 0.72 (95% CI: 0.71, 0.73) and 0.74 (95% CI: 0.72, 0.75), respectively (P < .001 for all comparisons). For mammography, it significantly surpassed zero/few-shot settings, achieving 0.92 (95% CI: 0.91, 0.93) and 0.97 (95% CI: 0.97, 0.98) for internal and external tests, respectively (P < .001 for all comparisons). 
-### Conclusion: 
-The proposed framework effectively trains an LLM to function as high-performance report labeler, tailored to the specific imaging modality and reporting style.
+Efficient extraction of structured information from unstructured radiology reports remains a critical challenge in healthcare. We introduce the Radiology Report Information Extraction Framework (RRIEF), a privacy-preserving approach utilizing parameter-efficient fine-tuning of open-source large language models (LLMs). We validated RRIEF across chest X-ray (CXR), mammography, and coronary CT angiography (CCTA) reports, evaluating its performance against specialized methods and proprietary LLMs (GPT-4o, Gemini-1.5-Flash, Claude-3.5-Sonnet). For CXR, RRIEF-LLaMA1-65B achieved F1 scores of 0.87 and 0.85 in internal and external tests, significantly outperforming CheXpert Labeler (0.70 and 0.69, P<.001), CheXbert (0.72 and 0.69, P<.001), and all proprietary LLMs (Claude-3.5-Sonnet: 0.69 and 0.62, P<.001). For mammography, RRIEF-LLaMA1-30B/65B reached F1 scores of 0.91 and 0.99 in internal and external tests, exceeding all proprietary LLMs (0.86 and 0.92, P=.002). For CCTA, using only 100 training reports, RRIEF-LLaMA3-8B significantly outperformed Gemini-1.5-Flash in stenosis severity (0.87 vs 0.83, P=.02), GPT-4o in external testing (0.83 vs 0.68, P<.001), and all proprietary models for modifiers in external testing (1.00 vs 0.93, P=.004). Notably, RRIEF-LLaMA3-8B achieved superior performance on CXR with only 200 training samples compared to all baselines including CheXbert and proprietary LLMs (P<.001). Our locally deployable framework enables high-performance information extraction from different types of radiology reports, facilitating large-scale research and clinical practice. We provide our complete implementation code publicly to promote accessibility and adoption.
+
+## Code Availability
+The code implementation is currently in development. Both the analytical code for reproducing the results of this study and a user-friendly version that allows researchers to adapt it for their specific purposes will be made available soon in this repository.
+
+
+
