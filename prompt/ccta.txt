@@ -1,0 +1,43 @@
+You need to extract the CAD-RADS, Plaque burden, and Modifier from a coronary artery CT report. Refer to the information below:
+
+CAD-RADS
+CAD-RADS is determined based on the most severe stenosis among various coronary branches:
+- 0: 0%, Absence of CAD
+- 1: 1-24%, Minimal non-obstructive CAD
+- 2: 25-49%, Mild non-obstructive CAD (Mild stenosis)
+- 3: 50-69%, Moderate stenosis
+- 4A: 70-99% in a single or 2-vessel, Severe stenosis
+- 4B: If the left main (LM) shows stenosis of 50% (moderate) or higher, or if 3-vessel(including LAD, LCx, RCA, OM, D, PDA) have stenosis of 70% (severe) or higher.
+- 5: 100% Total coronary occlusion
+ 
+Plaque Burden
+Plaque Burden is determined by the overall amount of coronary plaque and Coronary artery calcium (CAC):
+- None: 0
+- P1: Mild, 1-100
+- P2: Moderate, 101-300
+- P3: Severe, 301-999
+- P4: Extensive, >1000
+
+Modifiers 
+There are 6 modifiers that can be added to the CAD-RADS category. More than one modifiers can be applicable:
+- N: If "Limited evaluation due to severe motion artifacts" is present, it can be non-diagnostic. Coronary artery stenosis can be described with motion artifacts if evaluated with low diagnostic confidence, so it is not "non-diagnostic." In addition, motion artifacts can involve only the coronary artery branch. It is not non-diagnostic because other coronary arteries were evaluated.
+- HRP: High-risk plaque includes plaque with positive remodeling or low-attenuation plaque or spotty calcification in the plaque, or the napkin-ring sign. “napkin ring sign” defined in a non-calcified plaque cross-sectional image by the presence of two features: a central area of low attenuation plaque that is apparently in contact with the lumen; and a ring-like peripheral rim of higher CT attenuation surrounding this central area.
+- I: Use only if the report explicitly includes perfusion results from specific CT protocols such as CT Fractional Flow Reserve (CT-FFR) or CT perfusion (CTP). Do not apply 'I' if:
+    - The report does not include myocardial perfusion data from these specific protocols.
+    - The report only mentions myocardial thinning or motion abnormalities (e.g., hypokinesia, akinesia) without CT-FFR or CTP results.
+- S: Presence of stents. Indicates one or more coronary stents are present.
+- G: Coronary artery bypass grafts. Used when bypass grafts are present.
+- E: Used only for significant non-atherosclerotic coronary artery abnormalities such as dissections, anomalous arteries, aneurysms, vasculitis, fistulas, or extrinsic compression. Does not apply to:
+    - Minor anatomical variants (e.g., short left main, myocardial bridging).
+    - Non-coronary cardiac findings (e.g., valve abnormalities, septal defects).
+    - General cardiac or vascular findings not directly affecting coronary arteries.
+
+Requirements
+- If the modifier 'G' (coronary artery bypass grafts) is applicable, the Plaque Burden should be 'None'.
+- If there is a graft and the stenosis is 70% or higher, classify it as 4A only if the stenosis occurs in a branch not connected to the graft.
+- When encountering descriptive ranges like 'mild to moderate', always choose the more severe category. For example, 'mild to moderate' should be categorized as 'moderate'.
+- When presented with a range of stenosis percentages (e.g., '60-70%'), interpret it as the upper end of the range minus 1 (e.g., 69% for '60-70%').
+- When severe stenosis is mentioned in multiple branches or there is stenosis in the left main (LM), carefully review the conditions for CAD-RADS 4B to ensure accurate classification.
+- Do not assign 'None' for the CAD-RADS in any case. Always conclude with a CAD-RADS score from 0 to 5 based on the given information to the best of your ability.
+- Do not provide any text after the final answer.
+- Make output as a JSON format like the examples.

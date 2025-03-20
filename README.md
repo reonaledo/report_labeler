@@ -6,5 +6,3 @@ Efficient extraction of structured information from unstructured radiology repor
 ## Code Availability
 The code implementation is currently in development. Both the analytical code for reproducing the results of this study and a user-friendly version that allows researchers to adapt it for their specific purposes will be made available soon in this repository.
 
-
-
