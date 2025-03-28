@@ -1,0 +1,18 @@
+# 모든 파일을 git에 포함
+*
+
+# 특정 파일만 예외적으로 추적
+!ccta_llama3_internal.xlsx
+!.gitignore
+
+# 기타 일반적으로 제외할 파일들
+.DS_Store
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+ENV/

@@ -7,7 +7,12 @@ Efficient extraction of structured information from unstructured radiology repor
 The code implementation is currently in development. Both the analytical code for reproducing the results of this study and a user-friendly version that allows researchers to adapt it for their specific purposes will be made available soon in this repository.
 
 ## Training on CCTA report
-python lora_finetune/alpaca-lora/finetune.py --data_type custom --data_path data/SiteB-CCTA_train.json --output_dir trained_model/CCTA --num_epochs 10 --val_set_size 0 --wandb_project RRIEF_CCTA --wandb_run_name finetune1 --micro_batch_size 4 --base_model meta-llama/Meta-Llama-3-8B
+python lora_finetune/alpaca-lora/finetune.py --data_type custom --data_path data/SiteB-CCTA_train.json --output_dir trained_model/CCTA --instruction_file prompt/ccta.txt --num_epochs 10 --val_set_size 0 --wandb_project RRIEF_CCTA --wandb_run_name finetune1 --micro_batch_size 4 --base_model meta-llama/Meta-Llama-3-8B
 
 ## Inference for SiteB-CCTA
-CUDA_VISIBLE_DEVICES=0 python inference.py --model_id meta-llama/Meta-Llama-3-8B --checkpoint trained_model/CCTA/adapter_model.bin --use_finetuned --report_type ccta --input_file data/SiteB-CCTA_test.json --output_file output/llama3_SiteB-CCTA.xlsx --instruction_file prompt/ccta.txt --batch_size 50
+CUDA_VISIBLE_DEVICES=0 python inference.py --model_id meta-llama/Meta-Llama-3-8B --checkpoint trained_model/CCTA/adapter_model.bin --report_type ccta --input_file data/SiteB-CCTA_test.json --output_file output/llama3_SiteB-CCTA.xlsx --instruction_file prompt/ccta.txt --batch_size 50
+
+CUDA_VISIBLE_DEVICES=0 python inference.py --model_id meta-llama/Meta-Llama-3-8B --checkpoint /home/workspace/CXRLabler_trained_model/llama3-8b_epoch5/adapter_model.bin --cache_dir /home/public_models --report_type cxr --input_file data/chexpert_v1.5.1_impression_drop_duplicate.csv --output_file /home/workspace/report_labeler/output/chexpert-all/llama3_8b-instruction_drop_duplicate.csv --instruction_file prompt/cxr.txt --batch_size 128 --input_col impression
+
+
+CUDA_VISIBLE_DEVICES=0 python inference.py --model_id meta-llama/Meta-Llama-3-8B --checkpoint trained_model/CCTA/adapter_model.bin --report_type ccta --input_file data/SiteB-CCTA_test.json --output_file output/llama3_SiteB-CCTA_DELETE_THIS.xlsx --instruction_file prompt/ccta.txt --batch_size 8 --input_col input

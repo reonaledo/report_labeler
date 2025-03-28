@@ -23,6 +23,7 @@ from peft import (
 from transformers import LlamaForCausalLM, BitsAndBytesConfig, AutoTokenizer, AutoModelForCausalLM
 
 from utils.prompter import Prompter
+from utils.find_lora_target import find_all_linear_names
 
 # Configure logging
 logging.basicConfig(
@@ -39,6 +40,8 @@ def train(
     data_path: str = "./data/training.json",
     data_type: str = "custom",  # custom, json, dataset
     output_dir: str = "./output",
+    instruction_file: Optional[str] = None, 
+
     
     # training hyperparams
     batch_size: int = 8,
@@ -49,6 +52,7 @@ def train(
     val_set_size: int = 0,
     train_set_size: Optional[int] = None,
     random_seed: int = 42,
+    deterministic: bool = True,
     
     # lora hyperparams
     use_lora: bool = True,
@@ -77,6 +81,41 @@ def train(
     """
     Fine-tunes a language model with LoRA on a single GPU.
     """
+
+    if deterministic:
+        logger.info(f"Setting up deterministic training with seed {random_seed}")
+        import numpy as np
+        import random
+        
+        # Python 랜덤 시드 설정
+        random.seed(random_seed)
+        # Numpy 랜덤 시드 설정
+        np.random.seed(random_seed)
+        # PyTorch 랜덤 시드 설정
+        torch.manual_seed(random_seed)
+        torch.cuda.manual_seed_all(random_seed)
+        
+        # CUDA 결정적 알고리즘 활성화
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        
+        # Transformers 랜덤 시드 설정
+        transformers.set_seed(random_seed)
+        
+        # DataLoader 워커 시드 고정
+        def seed_worker(worker_id):
+            worker_seed = random_seed + worker_id
+            np.random.seed(worker_seed)
+            random.seed(worker_seed)
+            
+        g = torch.Generator()
+        g.manual_seed(random_seed)
+               
+        # 환경 변수 설정
+        os.environ['PYTHONHASHSEED'] = str(random_seed)
+        
+        logger.info("Deterministic training setup complete")
+
     # Calculate gradient accumulation steps
     gradient_accumulation_steps = batch_size // micro_batch_size
     if gradient_accumulation_steps <= 0:
@@ -90,12 +129,25 @@ def train(
     os.makedirs(output_dir, exist_ok=True)
     logger.info(f"Output directory: {output_dir}")
 
+    # Load instrcution
+    instruction_text = None
+    if instruction_file:
+        try:
+            logger.info(f"Loading instruction from file: {instruction_file}")
+            with open(instruction_file, "r", encoding="utf-8") as f:
+                instruction_text = f.read().strip()
+            logger.info(f"Instruction loaded successfully ({len(instruction_text)} characters)")
+        except Exception as e:
+            logger.error(f"Error loading instruction file: {str(e)}")
+            raise
+
     # Log training parameters
     logger.info(
         f"Training LLM with LoRA using the following parameters:\n"
         f"base_model: {base_model}\n"
         f"data_path: {data_path}\n"
         f"output_dir: {output_dir}\n"
+        f"instruction_file: {instruction_file}\n"
         f"batch_size: {batch_size}\n"
         f"micro_batch_size: {micro_batch_size}\n"
         f"num_epochs: {num_epochs}\n"
@@ -208,20 +260,8 @@ def train(
 
     # Configure LoRA
     if use_lora:
-        def find_all_linear_names(model):
-            cls = bnb.nn.Linear4bit if load_in_4bit else torch.nn.Linear
-            lora_module_names = set()
-            for name, module in model.named_modules():
-                if isinstance(module, cls):
-                    names = name.split('.')
-                    lora_module_names.add(names[0] if len(names) == 1 else names[-1])
-
-            if 'lm_head' in lora_module_names:  # needed for 16-bit
-                lora_module_names.remove('lm_head')
-            return list(lora_module_names)
-
         if lora_target_modules == 'all':
-            modules = find_all_linear_names(model)
+            modules = find_all_linear_names(model, load_in_4bit)
             logger.info(f"Auto-detected LoRA target modules: {modules}")
         else:
             modules = lora_target_modules
@@ -266,13 +306,19 @@ def train(
     
     def validate_data_point(data_point):
         """Validate that the data point has the required fields."""
-        required_fields = ["instruction", "input", "output"]
+        required_fields = ["input", "output"]
         for field in required_fields:
             if field not in data_point:
                 raise ValueError(f"Data point is missing required field: {field}")
         return True
         
     def generate_and_tokenize_prompt(data_point):
+
+        if instruction_text:
+            data_point_instruction = instruction_text
+        else:
+            data_point_instruction = data_point.get("instruction", "")
+
         # Validate the data point structure
         try:
             validate_data_point(data_point)
@@ -283,7 +329,7 @@ def train(
         
         # Generate and tokenize the prompt
         full_prompt = prompter.generate_prompt(
-            data_point["instruction"],
+            data_point_instruction,
             data_point["input"],
             data_point["output"],
         )
@@ -377,13 +423,26 @@ def train(
         train_val = data["train"].train_test_split(
             test_size=val_set_size, shuffle=True, seed=random_seed
         )
-        train_data = train_val["train"].shuffle().map(generate_and_tokenize_prompt)
-        val_data = train_val["test"].shuffle().map(generate_and_tokenize_prompt)
+        train_data = train_val["train"].shuffle(seed=random_seed).map(generate_and_tokenize_prompt)
+        val_data = train_val["test"].shuffle(seed=random_seed).map(generate_and_tokenize_prompt)
         logger.info(f"Training on {len(train_data)} examples, validating on {len(val_data)} examples")
     else:
-        train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
+        train_data = data["train"].shuffle(seed=random_seed).map(generate_and_tokenize_prompt)
         val_data = None
         logger.info(f"Training on {len(train_data)} examples, no validation set")
+
+    # 훈련 시작 직전 PyTorch 상태 확인 및 로깅
+    if deterministic and torch.cuda.is_available():
+        logger.info(f"CUDA deterministic mode: {torch.backends.cudnn.deterministic}")
+        logger.info(f"CUDA benchmark mode: {torch.backends.cudnn.benchmark}")
+
+    # # Training 인자에 generator와 worker_init_fn 추가 (DataLoader 관련 시드 고정)
+    # data_loader_params = {}
+    # if deterministic:
+    #     data_loader_params = {
+    #         "generator": g,
+    #         "worker_init_fn": seed_worker
+    #     }
 
     # Enable gradient checkpointing if requested (saves memory)
     if gradient_checkpointing:
@@ -452,6 +511,7 @@ def train(
         data_collator=transformers.DataCollatorForSeq2Seq(
             tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
         ),
+        # **data_loader_params
     )
 
     # Training preparation
@@ -512,6 +572,10 @@ if __name__ == "__main__":
         # For 4-bit training
         os.environ["BITSANDBYTES_NOWELCOME"] = "1"
         
+        # For reproducability
+        os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # CUDA 결정적 모드 설정
+        
+
         # Call the training function
         fire.Fire(train)
         

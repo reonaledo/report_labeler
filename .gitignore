@@ -1,0 +1,16 @@
+# wandb 폴더 무시
+wandb/
+
+# 일반적인 Python 관련 파일 무시
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+ENV/
+
+# 기타 일반적인 무시 패턴
+.DS_Store
