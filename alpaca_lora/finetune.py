@@ -1,6 +1,6 @@
 import os
 # Force PyTorch to only see GPU 0
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import sys
 import logging
